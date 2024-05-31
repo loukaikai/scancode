@@ -1,0 +1,107 @@
+spring:
+  cache:
+    type: redis
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:oracle:thin:@192.168.1.110:1522:RWA
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: NNRWA
+    password: c3R9ct5PW3kWu+FqrK+savch2+ujUKGJ1sWSg8kMS6mecbnZylq6QJHuAhkZ4f4/W8qytO619ZFNnxyeeVlcLw==
+    public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPMZaOLwmsTUEQCfJHt9Q9hXc64vbyyBEvLBVpdVvmhbmGWGRzNMS1TLCyN1Gbll3X/liBRKqR2Xkaj3VBiXXPECAwEAAQ==
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 600000
+      web-stat-filter:
+        enabled: true
+      stat-view-servlet:
+        enabled: true
+        allow:
+        url-pattern: /druid/*
+      filters: stat,wall,config
+      filter:
+        config:
+          enabled: true
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 2000
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+
+  redis:
+    # redis 调整为 默认配置方式 password 可加密
+    password: redis
+    timeout: 10000ms
+    database: 0
+    # redis的消费线程数， 必填， 根据服务器CPU调整
+    threads: 4
+    # single 配置 host & port
+    host: 192.168.13.242
+    port: 6379
+    # 连接池
+    lettuce:
+      pool:
+        max-active: 16
+        max-idle: 8
+        max-wait: 10000ms
+# sentinel 哨兵模式配置
+#    sentinel:
+#      master: mymaster
+#      nodes: 192.168.159.100:26381,192.168.159.100:26382,192.168.159.100:26383
+# cluster 集群模式配置
+#    cluster:
+#      nodes: 192.168.158.100:6381,192.168.158.100:6382,192.168.158.100:6383
+#      max-redirects: 2
+
+  task:
+    execution:
+      pool:
+        # 核心线程数 - 计算线程数， 服务器CPU+内存综合考虑 配置，
+        # 一般1线程配2G内存， 存在大分组下， 1线程占用内存可能更多， 服务器本身 至少预留4G内存
+        # 比如8C16G， 最多只能配置6个线程， 若为 4C8G， 最多只能配置2线程，
+        # 引擎优先服务器内存集中， 支持分布式计算， 但单台性能也必须保证
+        core-size: 4
+        max-size: 4
+        queue-capacity: 1000
+        keep-alive: 60
+#      thread-name-prefix: async-task-
+
+# 加密 密钥
+jasypt:
+  encryptor:
+    password: rwa
+
+rwa:
+  # 主数据源 数据库类型 可选： oracle/mysql/postgresql/opengauss/gauss
+  db-type: oracle
+  # 数据库域， 一般为 数据库用户， 目前 mysql必须配置
+  db-schema: NNRWA
+  # sql支持版本， 旧版本为o， 新版本为 n， mysql5.7为 o， 默认为 n即可
+  db-ssv: n
+  # 是否开启分区 默认开启分区
+  db-partition: true
+  # 表空间名称， 没有的数据库 无需配置
+  db-tablespace: RWA_DATA
+  # 分组 在插入后是否 做表分析 -- mysql 和 oracle 建议true， 其他数据库建议 false
+  group-analyze: false
+  # 多线程消费计算是否使用结果子表插入[非零售&零售] - 目前仅 MySQL使用 !!注意-国产数据库一般都支持单表的多线程写入，不必开子表写入
+  writer-sub-table: false
+  # 配置 引擎部署的 所有节点， IP:PORT , 隔开
+  nodes: 127.0.0.1:${server.port}
+
+#xxl:
+#  job:
+#    admin:
+#      addresses: http://127.0.0.1:8080/xxl-job-admin
+#    accessToken: default_token
+#    executor:
+#      appname: rwa-engine
+#      address:
+#      ip:
+#      port: 9000
+#      logpath: /data/applogs/xxl-job/jobhandler
+#      logretentiondays: 30
